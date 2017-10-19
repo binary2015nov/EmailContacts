@@ -21,7 +21,7 @@ namespace EmailContacts
 {
     public class AppHost : AppHostBase
     {
-        public AppHost() : base("Email Contact Services", typeof(ContactsServices).Assembly, typeof(QueryEmails).Assembly) {}
+        public AppHost() : base("Email Contact Services", typeof(ContactsServices).Assembly, typeof(QueryEmails).Assembly) { }
 
         public override void Configure(Container container)
         {
@@ -72,7 +72,7 @@ namespace EmailContacts
 
         private static void UseSmtpEmailer(Container container)
         {
-            var appSettings = new AppSettings();
+            var appSettings = ServiceStack.Configuration.AppSettings.Default;
 
             //Use 'SmtpConfig' appSetting in Web.config if it exists otherwise use default config below:
             container.Register(appSettings.Get("SmtpConfig",

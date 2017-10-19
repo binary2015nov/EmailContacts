@@ -1,11 +1,11 @@
-﻿using EmailContacts.ServiceInterface;
-using EmailContacts.ServiceModel;
-using EmailContacts.ServiceModel.Types;
-using NUnit.Framework;
-using ServiceStack;
+﻿using ServiceStack;
 using ServiceStack.Data;
 using ServiceStack.OrmLite;
 using ServiceStack.Testing;
+using NUnit.Framework;
+using EmailContacts.ServiceInterface;
+using EmailContacts.ServiceModel;
+using EmailContacts.ServiceModel.Types;
 
 namespace EmailContacts.Tests
 {
