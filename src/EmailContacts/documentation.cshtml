@@ -9,14 +9,13 @@
     <link href="Content/bootstrap-theme.css" rel="stylesheet" />
     <style type="text/css">
         body {
-            margin: 20px;
+            margin: 20px auto;
             color: #444;
             width: 960px;
         }
     </style>
 </head>
 <body>
-    <a href="/"><h1 class="glyphicon glyphicon-send" style="float:left; margin:0 10px 0 0; color: #444"></h1></a>
     <h1>Email Contact Services</h1>
     <div class="clearfix"></div>
 
@@ -31,10 +30,10 @@
         The purpose of the EmailContacts Application is to manage contacts in any RDBMS database, 
         provide a form to be able to send them messages and maintain a rolling history of any emails sent. 
         The application also provides an option to have emails instead sent and processed via 
-        <a href="https://github.com/ServiceStack/ServiceStack/wiki/Rabbit-MQ">Rabbit MQ</a>.
+        <a href="http://docs.servicestack.net/rabbit-mq">Rabbit MQ</a>.
     </p>
     
-    <a href="/"><img src="Content/splash.png" width="880" style="padding: 10px;"/></a>
+    <a href="https://github.com/ServiceStackApps/LiveDemos"><img src="Content/splash.png" width="880" style="padding: 10px;"/></a>
     
     <p>
         The entire UI is maintained in a single <b>default.cshtml</b> page under 130 lines of HTML 
@@ -143,7 +142,7 @@
     
     <p>
         This section will take you through the steps for 
-        <a href="https://github.com/ServiceStack/ServiceStack/wiki/Physical-project-structure">physically laying out</a>
+        <a href="http://docs.servicestack.net/physical-project-structure">physically laying out</a>
         setting up a typical ServiceStack Razor + Web Services solution from scratch:
     </p>
 
@@ -180,18 +179,28 @@
 <pre>
 PM> Install-Package jQuery
 PM> Install-Package bootstrap
+PM> Install-Package ServiceStack
+PM> Install-Package ServiceStack.Interfaces
+PM> Install-Package ServiceStack.Common
+PM> Install-Package ServiceStack.Text
 PM> Install-Package ServiceStack.Razor
-PM> Install-Package ServiceStack.Swagger
+PM> Install-Package ServiceStack.Api.Swagger
+PM> Install-Package ServiceStack.NetFramework
 PM> Install-Package ServiceStack.RabbitMq
+PM> Install-Package ServiceStack.OrmLite
+PM> Install-Package ServiceStack.OrmLite.Sqlite
 </pre>
     
     <p>For <b>EmailContacts.ServiceInterface</b> project:</p>
 <pre>
 PM> Install-Package ServiceStack
+PM> Install-Package ServiceStack.Interfaces
+PM> Install-Package ServiceStack.Common
+PM> Install-Package ServiceStack.Text
 PM> Install-Package ServiceStack.OrmLite
 </pre>
     
-    <p>For <b>EmailContacts.ServiceModel</b> DTO project:</p>
+    <p>For <b>EmailContacts.ServiceModel</b> DTOs project:</p>
 <pre>
 PM> Install-Package ServiceStack.Interfaces
 </pre>
@@ -209,14 +218,12 @@ PM> Install-Package ServiceStack.Interfaces
 &lt;/pages>
 </pre>
     
-    <p>For <b>EmailContacts.Test</b> project:</p>
+    <p>For <b>EmailContacts.Tests</b> project:</p>
 <pre>
 PM> Install-Package NUnit
 PM> Install-Package ServiceStack.RabbitMq
-PM> Install-Package ServiceStack.OrmLite.Sqlite.Mono
+PM> Install-Package ServiceStack.OrmLite.Sqlite
 </pre>
-    
-    <p>and set <b>Build &gt; Platform Target</b> to <b>x86</b> so it can run the 32bit sqlite3.dll.</p>
     
     <p>The next step is to setup your ServiceStack AppHost:</p>
 
@@ -241,11 +248,12 @@ PM> Install-Package ServiceStack.OrmLite.Sqlite.Mono
 
 <pre>public class AppHost : AppHostBase
 {
-    public AppHost() : base("Email Contact Services", typeof(ContactsServices).Assembly) {}
+    public AppHost() : base("Email Contact Services", typeof(ContactsServices).Assembly) { }
 
     public override void Configure(Container container)
     {
-        SetConfig(new HostConfig { ... });
+        Plugins.Add(new SwaggerFeature());
+
         ...
     }
 }
@@ -270,8 +278,8 @@ public class Global : System.Web.HttpApplication
         <li>
             The <b>Configure()</b> method is where to place all your application configuration.
             <ul>
-                <li>Most of ServiceStack features are available as options in the <b>SetConfig()</b> method</li>
-                <li>Whilst all custom hooks in  ServiceStack (e.g. filters and handlers) are exposed as properties in the base class</li>
+                <li>Most of ServiceStack features are available as options in the <b>Config.EnableFeatures</b> property</li>
+                <li>Whilst all custom hooks in ServiceStack (e.g. filters and handlers) are exposed as properties in the base class</li>
                 <li>The configuration of your service should be immutable after the Configure is run on StartUp</li>
             </ul>
         </li>
@@ -290,7 +298,7 @@ public class Global : System.Web.HttpApplication
 <pre>Plugins.RemoveAll(x => x is MetadataFeature);</pre>
     
     <p>
-        The <a href="https://github.com/ServiceStack/ServiceStack/wiki/Plugins">documentation on Plugins</a>
+        The documentation on <a href="http://docs.servicestack.net/plugins">Plugins</a>
         lists all the plugins that are available in ServiceStack and which ones are added by default.
         Other than the <b>Plugins</b> collection, you can view all the plugins loaded with your application
         by view the request info of any page with the query string <a href="?debug=requestinfo">?debug=requestinfo</a> 
@@ -323,7 +331,6 @@ Plugins.Add(new RazorFormat());
 Plugins.Add(new RequestLogsFeature());
 
 Plugins.Add(new ValidationFeature());
-container.RegisterValidators(typeof(ContactsServices).Assembly);
 </pre>
     
     <ul>
@@ -331,7 +338,7 @@ container.RegisterValidators(typeof(ContactsServices).Assembly);
         <li>The <b>RazorFormat</b> contains ServiceStack's Razor support, described in detail on <a href="http://razor.servicestack.net">razor.servicestack.net</a></li>
         <li>The <b>RequestLogsFeature</b> allows you to view and query all requests processed by ServiceStack at <a href="/requestlogs">/requestlogs</a></li>
         <li>
-            The <b>ValidationFeature</b> adds <a href="http://fluentvalidation.codeplex.com/documentation">Fluent Validation</a> support to ServiceStack
+            The <b>ValidationFeature</b> adds <a href="https://github.com/JeremySkinner/FluentValidation">Fluent Validation</a> support to ServiceStack
             <ul>
                 <li>Use <b>container.RegisterValidators()</b> to ServiceStack in which Assemblies it can find all the validators it should automatically wire-up</li>
             </ul>
@@ -363,24 +370,22 @@ container.RegisterValidators(typeof(ContactsServices).Assembly);
     </p>
     
 <pre>container.Register&lt;IDbConnectionFactory&gt;(
-    c => new OrmLiteConnectionFactory("db.sqlite", SqliteDialect.Provider));
+    c => new OrmLiteConnectionFactory("~/db.sqlite".MapHostAbsolutePath()", SqliteDialect.Provider));
 </pre>
 
     <p>
-        Once registered we can make immediate use of OrmLite by resolving the DB Factory from the IOC 
+        Once registered we can make immediate use of OrmLite by resolving the DB connection factory from the IOC 
         and opening a data connection from it. OrmLite also supports the creation of tables based on 
-        the schema of code-first POCO's, which we use here to Drop and re-create both <b>Email</b>
+        the schema of code-first POCO's, which we use here to drop and re-create both <b>Email</b>
         and <b>Contact</b> tables. After the tables are created we can initialize the app with some test data:
     </p>
 
-<pre>using (IDbConnection db = container.Resolve&lt;IDbConnectionFactory&gt;().Open())
+<pre>using (var db = container.Resolve&lt;IDbConnectionFactory&gt;().Open())
 {
     db.DropAndCreateTable&lt;Email&gt;();
     db.DropAndCreateTable&lt;Contact&gt;();
 
-    db.Insert(new Contact { Name = "Kurt Cobain", Email = "demo+kurt@servicestack.net", Age = 27 });
-    db.Insert(new Contact { Name = "Jimi Hendrix", Email = "demo+jimi@servicestack.net", Age = 27 });
-    db.Insert(new Contact { Name = "Michael Jackson", Email = "demo+mike@servicestack.net", Age = 50 });
+    ContactsServices.AddCustomers(db);
 }
 </pre>
     
@@ -393,7 +398,7 @@ container.RegisterValidators(typeof(ContactsServices).Assembly);
         one does not exist:
     </p>
     
-<pre>var appSettings = new AppSettings();
+<pre>var appSettings = ServiceStack.Configuration.AppSettings.Default;
 
 container.Register(appSettings.Get("SmtpConfig",
     new SmtpConfig {
@@ -435,7 +440,7 @@ container.Register(appSettings.Get("SmtpConfig",
     </p>
     
     <p>
-        <a href="https://github.com/ServiceStack/ServiceStack/wiki/The-IoC-container">ServiceStack's built-in IOC</a>
+        <a href="http://docs.servicestack.net/ioc">ServiceStack's built-in IOC</a>
         supports a number of other API's to register your dependencies, a common one is to have the 
         IOC also auto wire any dependencies your dependencies might have. The same API allows you to
         register your concrete dependency against a different interface, i.e:
@@ -458,17 +463,17 @@ container.RegisterAs&lt;SmtpEmailer, IEmailer&gt;().ReusedWithin(ReuseScope.Requ
     
     <p>
         ServiceStack also comes with an integrated version of 
-        <a href="https://github.com/ServiceStack/ServiceStack/wiki/Built-in-profiling">Mini Profiler</a>        
-        which you enable by starting and stopping it in ASP.NET's global.asax Request events, e.g:
+        <a href="http://docs.servicestack.net/built-in-profiling">Mini Profiler</a>        
+        which you enable by starting and stopping it in ASP.NET's Global.asax Request events, e.g:
     </p>
     
-<pre>protected void Application_BeginRequest(object src, EventArgs e)
+<pre>protected void Application_BeginRequest(object sender, EventArgs e)
 {
     if (Request.IsLocal)
         Profiler.Start();
 }
 
-protected void Application_EndRequest(object src, EventArgs e)
+protected void Application_EndRequest(object sender, EventArgs e)
 {
     Profiler.Stop();
 }
@@ -487,7 +492,7 @@ protected void Application_EndRequest(object src, EventArgs e)
     </p>
     
 <pre>container.Register&lt;IDbConnectionFactory&gt;(
-    c => new OrmLiteConnectionFactory("db.sqlite", SqliteDialect.Provider) {
+    c => new OrmLiteConnectionFactory("~db.sqlite".MapHostAbsolutePath()", SqliteDialect.Provider) {
         ConnectionFilter = x => new ProfiledDbConnection(x, Profiler.Current)
     });
 </pre>
@@ -520,9 +525,9 @@ protected void Application_EndRequest(object src, EventArgs e)
         In addition to providing a solid Services Framework, ServiceStack also serves as a full-featured
         Web Framework great for powering dynamic websites and javascript-powered Single Page Apps. 
         With no other dependencies, it can create content-heavy and simple dynamic sites like the 
-        <a href="http://mono.servicestack.net/docs/">ServiceStack Docs</a> website
+        <a href="http://docs.servicestack.net/">ServiceStack Docs</a> website
         using just the built-in
-        <a href="http://mono.servicestack.net/docs/markdown/markdown-razor">Markdown Razor view engine</a>        
+        <a href="http://docs.servicestack.net/markdown-razor">Markdown Razor view engine</a>        
         and static file handling support in ServiceStack. 
     </p>
 
@@ -756,7 +761,7 @@ public class MyService : Service { ... }
         restriction we've found using JavaScript ends up being a productivity and responsiveness win 
         which is more flexible and better suited than C# in genericizing reusable functionality, 
         reducing boilerplate, string manipulation, generating HTML views, consuming ajax services, 
-        event handling, DOM binding and manipulation, etc 
+        event handling, DOM binding and manipulation, etc. 
     </p>
 
     <h3>ServiceStack JavaScript Utils - /js/ss-utils.js</h3>
@@ -1182,7 +1187,7 @@ return HttpResult.TriggerEvent(contact, eventName:"showLoginPopup");
     
     <p>
         ServiceStack includes support for a number of MQ options which as they all implement ServiceStack's 
-        <a href="https://github.com/ServiceStack/ServiceStack/wiki/Messaging#wiki-messaging-api">Messaging API</a>
+        <a href="http://docs.servicestack.net/messaging#mq-client-architecture">Messaging API</a>
         they're easily interchangeable. 
     </p>
     
@@ -1190,7 +1195,7 @@ return HttpResult.TriggerEvent(contact, eventName:"showLoginPopup");
     <p>
         For this project we'll use the industrial-strength and popular <a href="https://www.rabbitmq.com/">RabbitMQ</a>,
         documentation for Rabbit MQ support in ServiceStack can be found on the 
-        <a href="https://github.com/ServiceStack/ServiceStack/wiki/Rabbit-MQ">Rabbit MQ wiki</a>. 
+        <a href="http://docs.servicestack.net/rabbit-mq">Rabbit MQ wiki</a>. 
         Before we can use it, we need to install it first, which can be done by following the
         <a href="https://github.com/mythz/rabbitmq-windows">Rabbit MQ Installation guide for Windows</a>.
     </p>
@@ -1266,7 +1271,7 @@ client.Post(new EmailContact { ContactId = 1, Subject = "UnitTest HTTP Email #1"
     <h3>Deferred Execution and Instant Response Times</h3>
     <p>
         We can explore another benefit of using MQ's by taking advantage of 
-        <a href="https://github.com/ServiceStack/ServiceStack/wiki/Routing#wiki-pre-defined-routes">ServiceStack's pre-defined routes</a>
+        <a href="http://docs.servicestack.net/routing#pre-defined-routes">ServiceStack's pre-defined routes</a>
         and the in-built behavior of <b>/oneway</b> routes which will automatically publish the HTTP request 
         into the Registered MQ Server if one exists, if no MQ Server is registered the HTTP Request falls 
         back to the normal behavior and is executed synchronously.
@@ -1372,7 +1377,7 @@ public class DbEmailer : RepositoryBase, IEmailer
     <p>
         ServiceStack's end-to-end typed API simplifies integration testing and introspection of live services
         letting you use clean, typed, terse, sync or async C# code. You can use any one of the many 
-        <a href="https://github.com/ServiceStack/ServiceStack/wiki/C%23-client">.NET Service Clients</a> 
+        <a href="http://docs.servicestack.net/csharp-client">.NET Service Clients</a> 
         available, initialized with the base url of where your ServiceStack services are hosted, e.g:   
     </p>
     
@@ -1385,7 +1390,7 @@ public class IntegrationTests
     [Test]
     public void Can_call_with_JsonServiceClient()
     {
-        client.Post(new CreateContact { Name = "Unit Test", Email = "demo+unit@servicestack.net", Age = 27 });
+        client.Post&lt;Contact&gt;(new CreateContact { Name = "Unit Test", Email = "demo+unit@servicestack.net", Age = 27 });
 
         Contact contact = client.Get(new GetContact { Id = 1 });
 
@@ -1531,7 +1536,7 @@ public class UnitTests
     <ul>
         <li>
             For more tutorials see a number of other 
-            <a href="https://github.com/ServiceStack/ServiceStack/wiki/Create-your-first-webservice#wiki-community-resources">
+            <a href="http://docs.servicestack.net/create-your-first-webservice#community-resources">
                 getting started tutorials and walkthroughs from the ServiceStack community</a>
         </li>
         <li>
@@ -1542,7 +1547,7 @@ public class UnitTests
         </li>
         <li>
             For available courses on ServiceStack see
-            <a href="http://pluralsight.com/training/Courses/Find?highlight=true&searchTerm=servicestack">
+            <a href="https://www.pluralsight.com/search?q=servicestack">
                 the ServiceStack courses on Plural Sight
             </a>
         </li>

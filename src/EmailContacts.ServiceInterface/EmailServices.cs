@@ -22,7 +22,7 @@ namespace EmailContacts.ServiceInterface
         {
             var contact = Db.SingleById<Contact>(request.ContactId);
             if (contact == null)
-                throw HttpError.NotFound("Contact does not exist");
+                throw HttpError.NotFound("Cannot does not exist");
 
             var msg = new Email { From = "demo@servicestack.net", To = contact.Email }.PopulateWith(request);
             Emailer.Email(msg);

@@ -1,4 +1,6 @@
 ﻿@layout ""
+@using EmailContacts.ServiceModel
+
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -37,8 +39,9 @@
 </head>
     <body>
         <a href="https://github.com/ServiceStackApps/LiveDemos"><h1 class="glyphicon glyphicon-send" style="float:left; margin:0 10px 0 0; color: #444"></h1></a>
-        <h1>Email Contacts</h1>
-        <a href="https://github.com/ServiceStackApps/EmailContacts" style="position:absolute; top: 10px; right: 10px">GitHub</a>
+        <a href="documentation.cshtml"><h1>Email Contacts</h1></a>
+        <a href="https://github.com/ServiceStackApps/EmailContacts" style="position:absolute; top: 10px; right: 10px">
+            <img src="Content/github.png" alt="GitHub" style="height:96px;" /></a>
         <div class="clearfix"></div>
         
         <h3 class="glyphicon glyphicon-plus" style="float:left; padding: 0 10px 0 0; line-height: 80%"></h3>
@@ -116,85 +119,87 @@
             <h3>Email History</h3>
             <table class="table table-striped" style="width: 100%;">
                 <thead>
-                    <th>Id</th>
-                    <th>To</th>
-                    <th>Subject</th>
+                    <tr>
+                        <th>Id</th>
+                        <th>To</th>
+                        <th>Subject</th>
+                    </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
-    </body>
-    
-    <script>
-        $("input").change($.ss.clearAdjacentError);
-        $.getJSON("/contacts", addContacts);
-        refreshEmailHistory();
+        <script>
+                $("input").change($.ss.clearAdjacentError);
+                $.getJSON("/contacts", addContacts);
+                refreshEmailHistory();
 
-        function addContacts(contacts) {
-            var html = contacts.map(function (c) {
-                return "<li data-id='" + c.Id + "' data-click='showContact'>" +
-                           "<span class='glyphicon glyphicon-user' style='margin: 0 5px 0 0'></span>" +
+                function addContacts(contacts) {
+                    var html = contacts.map(function (c) {
+                        return "<li data-id='" + c.Id + "' data-click='showContact'>" +
+                            "<span class='glyphicon glyphicon-user' style='margin: 0 5px 0 0'></span>" +
                             c.Name + " " + " (" + c.Age + ")" +
                             '<span class="glyphicon glyphicon-remove-circle" data-click="deleteContact"></span>' +
-                        "</li>";
-            });
-            $("#contacts").append(html.join(''));
-        }
+                            "</li>";
+                    });
+                    $("#contacts").append(html.join(''));
+                }
 
-        function refreshEmailHistory() {
-            $.getJSON("/emails", function (emails) {
-                if (emails.length > 0) {
-                    $("#email-history").show().find("TABLE tbody").html(
-                        emails.map(function(email) {
-                            return "<tr>" +
-                                "<td>" + email.Id + "</td>" +
-                                "<td>" + email.To + "</td>" +
-                                "<td>" + email.Subject + "</td>" +
-                            "</tr>";
-                        }));
-                }});
-        }
+                function refreshEmailHistory() {
+                    $.getJSON("/emails", function (emails) {
+                        if (emails.length > 0) {
+                            $("#email-history").show().find("TABLE tbody").html(
+                                emails.map(function (email) {
+                                    return "<tr>" +
+                                        "<td>" + email.Id + "</td>" +
+                                        "<td>" + email.To + "</td>" +
+                                        "<td>" + email.Subject + "</td>" +
+                                        "</tr>";
+                                }));
+                        }
+                    });
+                }
 
-        $("#form-addcontact").bindForm({
-            success: function (contact) {
-                addContacts([contact]);
-                $("#form-addcontact input").val('')
-                    .first().focus();
-            }
-        });
-
-        $("#form-emailcontact").bindForm({
-            success: function (request) {
-                $("#form-emailcontact .form-control").val('')
-                .parents("form").find('.alert-success')
-                    .html('Email was sent to ' + (request.Email || "MQ"))
-                    .show();
-                
-                refreshEmailHistory();
-            }
-        });
-
-        $(document).bindHandlers({
-            showContact: function() {
-                var id = $(this).data("id");
-                $.getJSON("/contacts/" + id, function (contact) {
-                    $("#email-contact")
-                        .applyValues(contact)
-                        .show();
-                    $("#form-emailcontact .alert-success").hide();
+                $("#form-addcontact").bindForm({
+                    success: function (contact) {
+                        addContacts([contact]);
+                        $("#form-addcontact input").val('')
+                            .first().focus();
+                    }
                 });
-            },
-            deleteContact: function () {
-                var $li = $(this).closest("li");
-                $.post("/contacts/" + $li.data("id") + "/delete", function () {
-                    $li.remove();
+
+                $("#form-emailcontact").bindForm({
+                    success: function (request) {
+                        $("#form-emailcontact .form-control").val('')
+                            .parents("form").find('.alert-success')
+                            .html('Email was sent to ' + (request.Email || "MQ"))
+                            .show();
+
+                        refreshEmailHistory();
+                    }
                 });
-            },
-            toggleAction: function() {
-                var $form = $(this).closest("form"), action = $form.attr("action");
-                $form.attr("action", $form.data("action-alt"))
-                     .data("action-alt", action);
-            }
-        });
-    </script>
+
+                $(document).bindHandlers({
+                    showContact: function () {
+                        var id = $(this).data("id");
+                        $.getJSON("/contacts/" + id, function (contact) {
+                            $("#email-contact")
+                                .applyValues(contact)
+                                .show();
+                            $("#form-emailcontact .alert-success").hide();
+                        });
+                    },
+                    deleteContact: function () {
+                        var $li = $(this).closest("li");
+                        $.post("/contacts/" + $li.data("id") + "/delete", function () {
+                            $li.remove();
+                        });
+                    },
+                    toggleAction: function () {
+                        var $form = $(this).closest("form"), action = $form.attr("action");
+                        $form.attr("action", $form.data("action-alt"))
+                            .data("action-alt", action);
+                    }
+                });
+        </script>
+    </body>
 </html>

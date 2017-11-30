@@ -21,10 +21,12 @@ namespace EmailContacts
 {
     public class AppHost : AppHostBase
     {
-        public AppHost() : base("Email Contact Services", typeof(ContactsServices).Assembly, typeof(QueryEmails).Assembly) { }
+        public AppHost() : base("Email Contact Services", typeof(ContactsServices).Assembly) { }
 
         public override void Configure(Container container)
         {
+            Plugins.Add(new MiniProfilerFeature());
+
             Plugins.Add(new SwaggerFeature());
             Plugins.Add(new RazorFormat());
             Plugins.Add(new RequestLogsFeature());
@@ -33,7 +35,6 @@ namespace EmailContacts
             Plugins.Add(new CorsFeature());
 
             Plugins.Add(new ValidationFeature());
-            container.RegisterValidators(typeof(ContactsServices).Assembly);
 
             Plugins.Add(new AutoQueryFeature());
 
@@ -94,13 +95,13 @@ namespace EmailContacts
             new AppHost().Init();
         }
 
-        protected void Application_BeginRequest(object src, EventArgs e)
+        protected void Application_BeginRequest(object sender, EventArgs e)
         {
             if (Request.IsLocal)
                 Profiler.Start();
         }
 
-        protected void Application_EndRequest(object src, EventArgs e)
+        protected void Application_EndRequest(object sender, EventArgs e)
         {
             Profiler.Stop();
         }
