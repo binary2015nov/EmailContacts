@@ -12,7 +12,7 @@ namespace EmailContacts.Tests
     [TestFixture]
     public class IntegrationTests
     {
-        readonly IServiceClient client = new JsonServiceClient("http://localhost:64077/");
+        readonly IServiceClient client = new JsonServiceClient("http://localhost:5001/");
 
         [Test]
         public void Can_call_with_JsonServiceClient()
